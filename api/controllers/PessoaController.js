@@ -1,4 +1,5 @@
 const database = require("../models");
+const Sequelize = require("sequelize");
 
 class PessoaController {
   static async pegaPessoasAtivas(req, res) {
@@ -192,20 +193,43 @@ class PessoaController {
     }
   }
 
-  static async pegaMatriculasPorTurma(req, res) {
-    const { turmaId } = req.params;
+  static async pegaTurmasLotadas(req, res) {
+    const lotacaoTurma = 2;
 
     try {
-      const todasAsMatriculas = await database.Matriculas.findAndCountAll({
+      const turmasLotadas = await database.Matriculas.findAndCountAll({
         where: {
-          turma_id: Number(turmaId),
           status: "confirmado",
         },
-        limit: 20,
-        order: [["estudante_id", "ASC"]],
+        attributes: ["turma_id"],
+        group: ["turma_id"],
+        having: Sequelize.literal(`count(turma_id) > ${lotacaoTurma}`),
       });
 
-      return res.status(200).json(todasAsMatriculas);
+      return res.status(200).json(turmasLotadas);
+    } catch (error) {
+      return res.status(500).json(error.message);
+    }
+  }
+
+  static async cancelaPessoa(req, res) {
+    const { estudanteId } = req.params;
+
+    try {
+      database.sequelize.transaction(async (transacao) => {
+        await database.Pessoas.update(
+          { ativo: false },
+          { where: { id: Number(estudanteId) } },
+          { transaction: transacao }
+        );
+        await database.Matriculas.update(
+          { status: "cancelado" },
+          { where: { estudante_id: Number(estudanteId) } },
+          { transaction: transacao }
+        );
+      });
+
+      return res.status(200).json({ message: "foi" });
     } catch (error) {
       return res.status(500).json(error.message);
     }
