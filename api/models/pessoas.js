@@ -13,14 +13,32 @@ module.exports = (sequelize, DataTypes) => {
       });
       Pessoas.hasMany(models.Matriculas, {
         foreignKey: "estudante_id",
+        scope: { status: "confirmado" },
+        as: 'aulasMatriculadas'
       });
     }
   }
   Pessoas.init(
     {
-      nome: DataTypes.STRING,
+      nome: {
+        type: DataTypes.STRING,
+        validate: {
+          funcaoValidadora: function (dado) {
+            if (dado.length < 3)
+              throw new Error("o campo nome deve ter mais q 3 caracters");
+          },
+        },
+      },
       ativo: DataTypes.BOOLEAN,
-      email: DataTypes.STRING,
+      email: {
+        type: DataTypes.STRING,
+        validate: {
+          isEmail: {
+            args: true,
+            msg: "dados do tipo e-mail invalido",
+          },
+        },
+      },
       role: DataTypes.STRING,
     },
     {
