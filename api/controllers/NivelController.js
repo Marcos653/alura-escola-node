@@ -59,7 +59,7 @@ class NivelController {
 
     try {
       await database.Niveis.destroy({ where: { id: Number(id) } });
-      return res.status(204).json(error.message);
+      return res.status(200).json({ message: "foi" });
     } catch (error) {
       return res.status(500).json(error.message);
     }
