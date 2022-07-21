@@ -7,9 +7,9 @@ class TurmaController {
     const { data_inicial, data_final } = req.query;
     const where = {};
 
-    data_inicial || data_final ? where.data_inicio = {} : null
-    data_inicial ? where.data_inicio[Op.gte] = data_inicial : null
-    data_final ? where.data_inicio[Op.lte] = data_final : null
+    data_inicial || data_final ? (where.data_inicio = {}) : null;
+    data_inicial ? (where.data_inicio[Op.gte] = data_inicial) : null;
+    data_final ? (where.data_inicio[Op.lte] = data_final) : null;
 
     try {
       const todasAsTurmas = await database.Turmas.findAll({
@@ -26,9 +26,20 @@ class TurmaController {
     const { id } = req.params;
 
     try {
-      const umaTurma = await database.Turmas.findOne({
+      let umaTurma = await database.Turmas.findOne({
         where: { id: Number(id) },
       });
+
+      // let doisTurma = await database.Turmas.findOne({
+      //   where: { id: Number(3) },
+      // });
+
+      var obj = JSON.parse(umaTurma);
+      obj["theTeam"].push({ teamId: "4", status: "pending" });
+
+      umaTurma = JSON.stringify(obj);
+
+      console.log(umaTurma);
 
       return res.status(200).json(umaTurma);
     } catch (error) {
